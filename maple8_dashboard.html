@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maple 9 Pension Plans - OMERS Focus</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&family=Roboto:wght@400;500;700&family=Montserrat:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <style>
+    /* --- Styles (Unchanged from v16) --- */
+    html { overflow: hidden; }
+    body { font-family: 'Roboto', 'IBM Plex Sans', sans-serif; margin: 0; padding: 0; overflow: hidden; background-color: #f8fafc; display: flex; height: 100vh; color: #374151; }
+    nav { width: 13rem; height: 100vh; position: fixed; top: 0; left: 0; z-index: 50; background-color: white; border-right: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+    .nav-inner-container { padding: 1rem; padding-top: 2rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; overflow-y: auto; flex-grow: 1; }
+    .nav-link-base { padding: 0.6rem 0.75rem; font-weight: 500; color: #374151; width: 100%; text-align: center; font-size: 0.9rem; text-decoration: none; cursor: pointer; position: relative; display: block; line-height: 1.5; border-radius: 4px; transition: background-color 0.2s ease, color 0.2s ease; }
+    .nav-link-base::after { content: ''; position: absolute; bottom: 0; left: 10%; width: 0; height: 3px; background: #003A70; transition: width 0.3s ease; }
+    .nav-link-base:hover::after, .nav-link-base.nav-active::after { width: 80%; }
+    .nav-link-base:hover { color: #111827; background-color: #f1f5f9; }
+    .nav-link-base.nav-active { font-weight: 700; color: #111827; }
+    .nav-link-base.nav-active::after { background: #003A70; }
+    table { table-layout: fixed; width: 100%; font-size: 0.85rem; border-collapse: collapse; }
+     th, td { width: 10%; padding: 0.6rem 0.4rem; vertical-align: middle; border-bottom: 1px solid #e2e8f0; text-align: center; }
+     td.text-left { text-align: left; font-weight: 500; }
+     thead th { border-bottom-width: 2px; border-color: #cbd5e1; height: 4rem; vertical-align: middle; font-weight: 600; }
+     tbody tr:last-child td { border-bottom: none; }
+     th img { max-height: 2.2rem; max-width: 85%; width: auto; height: auto; object-fit: contain; margin: 0 auto; display: block; vertical-align: middle; }
+     .asset-category td { background-color: #f1f5f9; font-weight: 600; color: #4b5563; padding-top: 0.8rem; padding-bottom: 0.8rem; }
+    .alloc-table-container { overflow-x: auto; }
+    .alloc-table-container table { table-layout: auto; font-size: 0.75rem; }
+    .alloc-table-container th, .alloc-table-container td { width: auto; padding: 0.3rem 0.5rem; border-bottom: 1px solid #e2e8f0; }
+    .alloc-table-container thead th { background-color: #f8fafc; color: #4b5563; text-transform: uppercase; font-weight: 600; height: auto; padding: 0.4rem 0.5rem; border-bottom-width: 1px; }
+    .alloc-table-container tbody tr:nth-child(even) { background-color: #f8fafc; }
+    .alloc-table-container td:first-child { font-weight: 500; color: #374151; text-align: left; }
+    .alloc-table-container td:last-child { text-align: right; font-weight: 600; position: relative; padding: 0.4rem 0.5rem; white-space: nowrap; font-size: 0.8rem; color: #1f2937; background: transparent; }
+    /* Remove first-child bolding as OMERS might not always be first initially */
+    /* .alloc-table-container tbody tr:first-child td:first-child { font-weight: 700; } */
+    .alloc-table-container tbody tr:last-child td { border-bottom: none; }
+    .checkbox-group { text-align: center; margin-top: 0.8rem; margin-bottom: 0.8rem; }
+    .checkbox-group label { margin: 0 6px; font-size: 0.8rem; }
+    .scroll-container { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; flex-grow: 1; margin-left: 13rem; margin-right: 6rem; width: calc(100% - 13rem - 6rem); position: relative; }
+    .scroll-section { position: relative; min-height: 100vh; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; background-color: #f8fafc; width: 100%; overflow: hidden; padding-top: 1.5rem; padding-left: 1rem; padding-right: 1rem; padding-bottom: 1.5rem; }
+    #overview { justify-content: center; height: 100vh ; overflow: hidden; padding-top: 0; padding-bottom: 0; }
+    .chart-container { width: 100%; max-width: 80rem; margin: 0 auto; }
+    .horizontal-split-container { display: grid; grid-template-columns: 1fr 1.2fr; gap: 1rem; width: 100%; max-width: 85rem; margin: 0.5rem auto 0 auto; align-items: start; }
+    .column-left { display: flex; flex-direction: column; gap: 0.75rem; }
+    .column-right { display: grid; grid-template-rows: repeat(3, auto); gap: 0.5rem; }
+    .single-table-container { width: 100%; max-width: 70rem; margin: 0.5rem auto 0 auto; }
+    .chart-card { background-color: #ffffff; border-radius: 10px; padding: 0.75rem; display: flex; flex-direction: column; align-items: center; width: 100%; flex-shrink: 0; position: relative; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.04); min-height: 130px; }
+    .column-left .chart-card { min-height: fit-content; }
+    .horizontal-split-container .chart-card h3 { font-size: 0.9rem; margin-bottom: 0.5rem; color: #1f2937; font-weight: 600; text-align: center; width: 100%; }
+    .column-left .chart-card:first-child h3 { padding-bottom: 0.4rem; border-bottom: 1px solid #e2e8f0; }
+    .column-left .chart-card:not(:first-child) h3 { padding-bottom: 0; border-bottom: none; }
+    .chart-container h3, .single-table-container h3 { font-size: 1rem; font-weight: 600; color: #003A70; text-align: center; margin-bottom: 0.8rem; position: relative; z-index: 2; }
+    .chart-canvas-container { width: 100%; position: relative; flex-grow: 1; min-height: 100px; z-index: 1; border-radius: 6px; display: flex; justify-content: center; align-items: center; }
+    .contribution-chart-container { min-height: 140px; }
+    .chart-card canvas { position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important; background-color: transparent !important; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
+    #merChart { max-height: 350px; height: 350px !important; }
+    #returnsChart { max-height: 500px; height: 500px !important; }
+    .section-title { font-size: 1.8rem; font-weight: 700; color: #003A70; text-align: center; margin-bottom: 0.5rem; position: relative; width: 100%; padding-top: 0; }
+    .overview-title { font-family: 'Montserrat', sans-serif; font-size: 2.5rem; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 1rem; line-height: 1.2; letter-spacing: -0.5px; }
+    .overview-subtitle { font-family: 'Montserrat', sans-serif; font-size: 1.15rem; font-weight: 500; color: #64748b; text-align: center; margin-top: 0; margin-bottom: 1.5rem; max-width: 45rem; line-height: 1.6; }
+    .year-end-selector { display: flex; justify-content: center; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .year-end-label { font-size: 0.9rem; font-weight: 500; color: #374151; margin-right: 0.25rem; }
+    .year-end-tabs-group { display: inline-flex; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .year-end-tab { padding: 0.6rem 1.2rem; font-size: 0.85rem; font-weight: 600; color: #4b5563; background-color: #f1f5f9; border: none; border-right: 1px solid #e2e8f0; cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease; line-height: 1.2; white-space: nowrap; }
+     .year-end-tabs-group .year-end-tab:last-child { border-right: none; }
+    .year-end-tab:hover:not(.active-tab) { background-color: #e2e8f0; color: #1f2937; }
+    .year-end-tab.active-tab { background-color: #003A70; color: #ffffff; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
+    .logo-grid-container { width: 100%; max-width: 40rem; margin: 0 auto; display: flex; justify-content: center; align-items: center; }
+    .logo-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 2.5rem; width: 100%; height: 100%; max-height: 40rem; aspect-ratio: 1 / 1; }
+    .logo-cell { display: flex; justify-content: center; align-items: center; padding: 0.5rem; }
+    .logo-cell img, .logo-cell svg { max-width: 100%; max-height: 5rem; height: auto; width: auto; object-fit: contain; transition: opacity 0.3s ease; }
+    .center-logo img { max-height: 7rem; opacity: 1; }
+    .surrounding-logo img, .surrounding-logo svg { opacity: 0.35; }
+    .surrounding-logo:hover img, .surrounding-logo:hover svg { opacity: 0.7; }
+    #year-list-container { width: 6rem; height: 100vh; position: fixed; top: 0; right: 0; z-index: 40; background-color: #f1f5f9; border-left: 1px solid #e2e8f0; padding: 1rem 0.5rem; padding-top: 2rem; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+    .year-item { font-size: 0.9rem; font-weight: 500; color: #4b5563; padding: 0.4rem 0; cursor: pointer; width: 100%; text-align: center; border-radius: 4px; transition: background-color 0.2s ease, color 0.2s ease; margin-bottom: 0.2rem; }
+    .year-item:hover { color: #1f2937; background-color: #e2e8f0; }
+    .year-item.active-year { color: #ffffff; background-color: #003A70; font-weight: 700; }
+     .loading-spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #003A70; animation: spin 1s ease infinite; margin: 20px auto; }
+     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+     .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(248, 250, 252, 0.7); display: flex; justify-content: center; align-items: center; z-index: 10; }
+     .hidden { display: none; }
+  </style>
+</head>
+<body class="text-slate-800 text-lg">
+
+  <nav> <div class="nav-inner-container"> <a href="#overview" class="nav-link-base nav-active" id="homeLink">Home</a> <a href="#total-fund" class="nav-link-base" id="totalFundTableLink">Total Fund Metrics</a> <a href="#annual-returns" class="nav-link-base" id="annualReturnsChartLink">Annual Returns</a> <a href="#fixed-income" class="nav-link-base" id="fixedIncomeLink">Fixed Income</a> <a href="#public-equity" class="nav-link-base" id="publicEquityLink">Public Equity</a> <a href="#private-equity" class="nav-link-base" id="privateEquityLink">Private Equity</a> <a href="#infrastructure" class="nav-link-base" id="infrastructureLink">Infrastructure</a> <a href="#real-estate" class="nav-link-base" id="realEstateLink">Real Estate</a> <a href="#mer" class="nav-link-base" id="merLink">MER</a> </div> </nav>
+
+  <div class="scroll-container">
+    <div id="loading-indicator" class="loading-overlay"> <div class="loading-spinner"></div> </div>
+    <section class="scroll-section hidden" id="overview"> <h2 class="overview-title">Peer Comparisons</h2> <p class="overview-subtitle">Benchmarking Canada’s Public Pension Giants</p> <div class="logo-grid-container"> <div class="logo-grid"> <div class="logo-cell surrounding-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/CPP_Investment_Board_Logo.svg/1280px-CPP_Investment_Board_Logo.svg.png" alt="CPP Investments Logo" title="CPP Investments"/></div> <div class="logo-cell surrounding-logo"><img src="https://upload.wikimedia.org/wikipedia/en/thumb/7/7a/Ontario_Teachers%27_Pension_Plan_logo_2021.svg/1200px-Ontario_Teachers%27_Pension_Plan_logo_2021.svg.png" alt="OTPP Logo" title="OTPP"/></div> <div class="logo-cell surrounding-logo"><img src="https://hoopp.com/assets/img/HOOPP%20Symbol%20and%20Acronym_RGB_New.svg" alt="HOOPP Logo" title="HOOPP"/></div> <div class="logo-cell surrounding-logo"><img src="https://forthports.co.uk/wp-content/uploads/2019/01/PSP_sign_ANG_RGB_Bleu-300x151.png" alt="PSP Investments Logo" title="PSP Investments"/></div> <div class="logo-cell center-logo"> <img src="https://omers.sharepoint.com/sites/OM-Brand/SiteAssets/Logos/1_OMERS/PNG/OMERS_RGB_Primary%20Blue.png" alt="OMERS Logo" title="OMERS"/> </div> <div class="logo-cell surrounding-logo"><img src="https://reseaucapital.com/wp-content/uploads/2017/06/logo-cdpq-k.png" alt="CDPQ Logo" title="CDPQ"/></div> <div class="logo-cell surrounding-logo"><img src="https://www.bci.ca/wp-content/uploads/2018/03/bci-logo.png" alt="BCI Logo" title="BCI"/></div> <div class="logo-cell surrounding-logo"><img src="https://www.icgn.org/sites/default/files/styles/media_item_uncropped/public/2022-04/IMCO%20Logo.png?itok=u3UKwr6J" alt="IMCO Logo" title="IMCO"/></div> <div class="logo-cell surrounding-logo"><img src="https://upload.wikimedia.org/wikipedia/en/7/7c/Aimco_logo.svg" alt="AIMCo Logo" title="AIMCo"/></div> </div> </div> </section>
+    <section class="scroll-section hidden" id="total-fund"> <h2 class="section-title">Total Fund Metrics (<span id="total-fund-year"></span>)</h2> <p class="text-center text-sm text-gray-600 mb-4">Displaying data for the selected year.</p> <div class="w-full max-w-7xl mx-auto shadow-lg rounded-xl bg-white border border-slate-200 overflow-x-auto"> <table class="min-w-full"> <colgroup> <col style="width: 10%" /> <col style="width: 10%" span="9" /> </colgroup> <thead class="bg-white"> <tr> <th></th> <th><img src="https://omers.sharepoint.com/sites/OM-Brand/SiteAssets/Logos/1_OMERS/PNG/OMERS_RGB_Primary%20Blue.png" alt="OMERS Logo" /></th> <th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/CPP_Investment_Board_Logo.svg/1280px-CPP_Investment_Board_Logo.svg.png" alt="CPP Investments Logo" /></th> <th><img src="https://upload.wikimedia.org/wikipedia/en/thumb/7/7a/Ontario_Teachers%27_Pension_Plan_logo_2021.svg/1200px-Ontario_Teachers%27_Pension_Plan_logo_2021.svg.png" alt="OTPP Logo" /></th> <th><img src="https://hoopp.com/assets/img/HOOPP%20Symbol%20and%20Acronym_RGB_New.svg" alt="HOOPP Logo" /></th> <th><img src="https://forthports.co.uk/wp-content/uploads/2019/01/PSP_sign_ANG_RGB_Bleu-300x151.png" alt="PSP Investments Logo" /></th> <th><img src="https://reseaucapital.com/wp-content/uploads/2017/06/logo-cdpq-k.png" alt="CDPQ Logo" /></th> <th><img src="https://www.bci.ca/wp-content/uploads/2018/03/bci-logo.png" alt="BCI Logo" /></th> <th><img src="https://upload.wikimedia.org/wikipedia/en/7/7c/Aimco_logo.svg" alt="AIMCo Logo" /></th> <th><img src="https://www.icgn.org/sites/default/files/styles/media_item_uncropped/public/2022-04/IMCO%20Logo.png?itok=u3UKwr6J" alt="IMCO Logo" /></th> </tr> </thead> <tbody class="text-slate-800"></tbody> </table> </div> </section>
+    <section class="scroll-section hidden" id="annual-returns"> <h2 class="section-title">Annual Returns (Trend)</h2> <div class="checkbox-group"> <label><input type="checkbox" id="returnsToggleAll" checked> <strong>All</strong></label> <label><input type="checkbox" class="line-toggle returns-line" data-line="OMERS" checked> OMERS</label> <label><input type="checkbox" class="line-toggle returns-line" data-line="CPPIB" checked> CPPIB</label> <label><input type="checkbox" class="line-toggle returns-line" data-line="OTPP" checked> OTPP</label> <label><input type="checkbox" class="line-toggle returns-line" data-line="HOOPP" checked> HOOPP</label> <label><input type="checkbox" class="line-toggle returns-line" data-line="PSP" checked> PSP</label> <label><input type="checkbox" class="line-toggle returns-line" data-line="CDPQ" checked> CDPQ</label> <label><input type="checkbox" class="line-toggle returns-line" data-line="BCI" checked> BCI</label> <label><input type="checkbox" class="line-toggle returns-line" data-line="AIMCo" checked> AIMCo</label> <label><input type="checkbox" class="line-toggle returns-line" data-line="IMCO" checked> IMCO</label> </div> <div class="chart-container"> <canvas id="returnsChart"></canvas> </div> </section>
+
+    <section class="scroll-section hidden" id="fixed-income"> <h2 class="section-title">Fixed Income (<span class="asset-class-year"></span>)</h2> <div class="year-end-selector"> <span class="year-end-label">Data Basis:</span> <div class="year-end-tabs-group"> <button class="year-end-tab active-tab" data-value="12">December Y/E</button> <button class="year-end-tab" data-value="3">March Y/E</button> </div> </div> <div class="horizontal-split-container"> <div class="column-left"> <div class="chart-card"> <h3>Allocation (%)</h3> <div class="alloc-table-container w-full mt-1"> <table class="w-full"> <thead> <tr> <th>Plan</th> <th>Allocation</th> </tr> </thead> <tbody></tbody> </table> </div> </div> <div class="chart-card"> <h3>Return Contribution (%, 1-Yr)</h3> <div class="chart-canvas-container contribution-chart-container"> <canvas id="fixed-incomeContribChart"></canvas> </div> </div> </div> <div class="column-right"> <div class="chart-card"> <h3>Performance (%, 1-Yr)</h3> <div class="chart-canvas-container"> <canvas id="fixed-incomePerf1yrChart"></canvas> </div> </div> <div class="chart-card"> <h3>Performance (%, 3-Yr Ann.)</h3> <div class="chart-canvas-container"> <canvas id="fixed-incomePerf3yrChart"></canvas> </div> </div> <div class="chart-card"> <h3>Performance (%, 5-Yr Ann.)</h3> <div class="chart-canvas-container"> <canvas id="fixed-incomePerf5yrChart"></canvas> </div> </div> </div> </div> </section>
+    <section class="scroll-section hidden" id="public-equity"> <h2 class="section-title">Public Equity (<span class="asset-class-year"></span>)</h2> <div class="year-end-selector"> <span class="year-end-label">Data Basis:</span> <div class="year-end-tabs-group"> <button class="year-end-tab active-tab" data-value="12">December Y/E</button> <button class="year-end-tab" data-value="3">March Y/E</button> </div> </div> <div class="horizontal-split-container"> <div class="column-left"> <div class="chart-card"> <h3>Allocation (%)</h3> <div class="alloc-table-container w-full mt-1"> <table class="w-full"> <thead> <tr> <th>Plan</th> <th>Allocation</th> </tr> </thead> <tbody></tbody> </table> </div> </div> <div class="chart-card"> <h3>Return Contribution (%, 1-Yr)</h3> <div class="chart-canvas-container contribution-chart-container"> <canvas id="public-equityContribChart"></canvas> </div> </div> </div> <div class="column-right"> <div class="chart-card"> <h3>Performance (%, 1-Yr)</h3> <div class="chart-canvas-container"> <canvas id="public-equityPerf1yrChart"></canvas> </div> </div> <div class="chart-card"> <h3>Performance (%, 3-Yr Ann.)</h3> <div class="chart-canvas-container"> <canvas id="public-equityPerf3yrChart"></canvas> </div> </div> <div class="chart-card"> <h3>Performance (%, 5-Year Ann.)</h3> <div class="chart-canvas-container"> <canvas id="public-equityPerf5yrChart"></canvas> </div> </div> </div> </div> </section>
+    <section class="scroll-section hidden" id="private-equity"> <h2 class="section-title">Private Equity (<span class="asset-class-year"></span>)</h2> <div class="year-end-selector"> <span class="year-end-label">Data Basis:</span> <div class="year-end-tabs-group"> <button class="year-end-tab active-tab" data-value="12">December Y/E</button> <button class="year-end-tab" data-value="3">March Y/E</button> </div> </div> <div class="horizontal-split-container"> <div class="column-left"> <div class="chart-card"> <h3>Allocation (%)</h3> <div class="alloc-table-container w-full mt-1"> <table class="w-full"> <thead> <tr> <th>Plan</th> <th>Allocation</th> </tr> </thead> <tbody></tbody> </table> </div> </div> <div class="chart-card"> <h3>Return Contribution (%, 1-Yr)</h3> <div class="chart-canvas-container contribution-chart-container"> <canvas id="private-equityContribChart"></canvas> </div> </div> </div> <div class="column-right"> <div class="chart-card"> <h3>Performance (%, 1-Yr)</h3> <div class="chart-canvas-container"> <canvas id="private-equityPerf1yrChart"></canvas> </div> </div> <div class="chart-card"> <h3>Performance (%, 3-Yr Ann.)</h3> <div class="chart-canvas-container"> <canvas id="private-equityPerf3yrChart"></canvas> </div> </div> <div class="chart-card"> <h3>Performance (%, 5-Year Ann.)</h3> <div class="chart-canvas-container"> <canvas id="private-equityPerf5yrChart"></canvas> </div> </div> </div> </div> </section>
+    <section class="scroll-section hidden" id="infrastructure"> <h2 class="section-title">Infrastructure (<span class="asset-class-year"></span>)</h2> <div class="year-end-selector"> <span class="year-end-label">Data Basis:</span> <div class="year-end-tabs-group"> <button class="year-end-tab active-tab" data-value="12">December Y/E</button> <button class="year-end-tab" data-value="3">March Y/E</button> </div> </div> <div class="horizontal-split-container"> <div class="column-left"> <div class="chart-card"> <h3>Allocation (%)</h3> <div class="alloc-table-container w-full mt-1"> <table class="w-full"> <thead> <tr> <th>Plan</th> <th>Allocation</th> </tr> </thead> <tbody></tbody> </table> </div> </div> <div class="chart-card"> <h3>Return Contribution (%, 1-Yr)</h3> <div class="chart-canvas-container contribution-chart-container"> <canvas id="infrastructureContribChart"></canvas> </div> </div> </div> <div class="column-right"> <div class="chart-card"> <h3>Performance (%, 1-Yr)</h3> <div class="chart-canvas-container"> <canvas id="infrastructurePerf1yrChart"></canvas> </div> </div> <div class="chart-card"> <h3>Performance (%, 3-Year Ann.)</h3> <div class="chart-canvas-container"> <canvas id="infrastructurePerf3yrChart"></canvas> </div> </div> <div class="chart-card"> <h3>Performance (%, 5-Year Ann.)</h3> <div class="chart-canvas-container"> <canvas id="infrastructurePerf5yrChart"></canvas> </div> </div> </div> </div> </section>
+    <section class="scroll-section hidden" id="real-estate"> <h2 class="section-title">Real Estate (<span class="asset-class-year"></span>)</h2> <div class="year-end-selector"> <span class="year-end-label">Data Basis:</span> <div class="year-end-tabs-group"> <button class="year-end-tab active-tab" data-value="12">December Y/E</button> <button class="year-end-tab" data-value="3">March Y/E</button> </div> </div> <div class="horizontal-split-container"> <div class="column-left"> <div class="chart-card"> <h3>Allocation (%)</h3> <div class="alloc-table-container w-full mt-1"> <table class="w-full"> <thead> <tr> <th>Plan</th> <th>Allocation</th> </tr> </thead> <tbody></tbody> </table> </div> </div> <div class="chart-card"> <h3>Return Contribution (%, 1-Yr)</h3> <div class="chart-canvas-container contribution-chart-container"> <canvas id="real-estateContribChart"></canvas> </div> </div> </div> <div class="column-right"> <div class="chart-card"> <h3>Performance (%, 1-Yr)</h3> <div class="chart-canvas-container"> <canvas id="real-estatePerf1yrChart"></canvas> </div> </div> <div class="chart-card"> <h3>Performance (%, 3-Yr Ann.)</h3> <div class="chart-canvas-container"> <canvas id="real-estatePerf3yrChart"></canvas> </div> </div> <div class="chart-card"> <h3>Performance (%, 5-Year Ann.)</h3> <div class="chart-canvas-container"> <canvas id="real-estatePerf5yrChart"></canvas> </div> </div> </div> </div> </section>
+
+    <section class="scroll-section hidden" id="mer"> <h2 class="section-title">Management Expense Ratio (MER Trend)</h2> <div class="checkbox-group"> <label><input type="checkbox" id="merToggleAll" checked> <strong>All</strong></label> <label><input type="checkbox" class="line-toggle mer-line" data-line="OMERS" checked> OMERS</label> <label><input type="checkbox" class="line-toggle mer-line" data-line="CPPIB" checked> CPPIB</label> <label><input type="checkbox" class="line-toggle mer-line" data-line="OTPP" checked> OTPP</label> <label><input type="checkbox" class="line-toggle mer-line" data-line="HOOPP" checked> HOOPP</label> <label><input type="checkbox" class="line-toggle mer-line" data-line="PSP" checked> PSP</label> <label><input type="checkbox" class="line-toggle mer-line" data-line="CDPQ" checked> CDPQ</label> <label><input type="checkbox" class="line-toggle mer-line" data-line="BCI" checked> BCI</label> <label><input type="checkbox" class="line-toggle mer-line" data-line="AIMCo" checked> AIMCo</label> <label><input type="checkbox" class="line-toggle mer-line" data-line="IMCO" checked> IMCO</label> </div> <div class="chart-container"> <canvas id="merChart"></canvas> </div> </section>
+
+  </div> <div id="year-list-container"> </div>
+
+  <script>
+    // --- Global Scope & Setup ---
+    const chartInstances = {};
+    let allPeerData = [];
+    let selectedYear = null;
+    const maple9Labels = ['OMERS', 'CPPIB', 'OTPP', 'HOOPP', 'PSP', 'CDPQ', 'BCI', 'AIMCo', 'IMCO'];
+    const planColors = { 'OMERS': '#003A70', 'CPPIB': '#83ACFF', 'OTPP': '#157370', 'HOOPP': '#7B61AD', 'PSP': '#59B2AC', 'CDPQ': '#664745', 'BCI': '#CC7A7A', 'AIMCo': '#CCCCCC', 'IMCO': '#D3DEF4', 'fallback': '#F2F2F2' };
+    const gridLineColor = '#eef2f7';
+    const allocationBarColor = '#D3DEF4';
+    const omersAllocationBarColor = '#003A70';
+    let DATA_YEARS = [];
+    let ALL_AVAILABLE_YEARS = [];
+    const MIN_CHART_YEAR = 2018;
+    const DEFAULT_FYE_VALUE = 12;
+    let selectedFyeValue = DEFAULT_FYE_VALUE;
+    const assetClassMetricMap = {
+        'fixed-income':   { id: 'fixed-income',   alloc: 'Allocation_FI_Pct',      ret1: 'Perf_FI_1Yr_Pct',      ret3: 'Perf_FI_3YrAnn_Pct',      ret5: 'Perf_FI_5YrAnn_Pct' },
+        'public-equity':  { id: 'public-equity',  alloc: 'Allocation_PubEq_Pct',   ret1: 'Perf_PubEq_1Yr_Pct',   ret3: 'Perf_PubEq_3YrAnn_Pct',   ret5: 'Perf_PubEq_5YrAnn_Pct' },
+        'private-equity': { id: 'private-equity', alloc: 'Allocation_PrivEq_Pct',  ret1: 'Perf_PrivEq_1Yr_Pct',  ret3: 'Perf_PrivEq_3YrAnn_Pct',  ret5: 'Perf_PrivEq_5YrAnn_Pct' },
+        'infrastructure': { id: 'infrastructure', alloc: 'Allocation_Infra_Pct',   ret1: 'Perf_Infra_1Yr_Pct',   ret3: 'Perf_Infra_3YrAnn_Pct',   ret5: 'Perf_Infra_5YrAnn_Pct' },
+        'real-estate':    { id: 'real-estate',    alloc: 'Allocation_RE_Pct',      ret1: 'Perf_RE_1Yr_Pct',      ret3: 'Perf_RE_3YrAnn_Pct',      ret5: 'Perf_RE_5YrAnn_Pct' },
+    };
+
+    // --- Utility Functions ---
+    const applyAllocationBar = (cell, barColor = '#CCCCCC', maxPossibleValue = 100) => { if (!cell) return; try { const textContent = cell.textContent || ''; const percentageValue = textContent === 'N/A' ? null : parseFloat(textContent.replace('%', '')); if (percentageValue !== null && !isNaN(percentageValue) && percentageValue >= -1000) { const displayPercent = Math.max(0, Math.min(percentageValue, maxPossibleValue)); if (percentageValue < 0) { cell.style.background = 'transparent'; } else { cell.style.background = `linear-gradient(to right, ${barColor} ${displayPercent}%, transparent ${displayPercent}%)`; } cell.style.backgroundColor = ''; } else { cell.style.background = 'transparent'; } } catch (e) { console.error("Error applying allocation bar:", e, cell); cell.style.background = 'transparent'; } };
+    const applyAllocationBarsToTable = (tableSelector) => { const table = document.querySelector(tableSelector); if (!table) return; const allocationCells = table.querySelectorAll('tbody td:last-child'); const planNameCells = table.querySelectorAll('tbody td:first-child'); if (allocationCells.length > 0 && allocationCells.length === planNameCells.length) { const maxScaleValue = 60; allocationCells.forEach((cell, index) => { const planName = planNameCells[index] ? planNameCells[index].textContent : ''; const isOmersRow = planName === 'OMERS'; const barColor = isOmersRow ? omersAllocationBarColor : allocationBarColor; applyAllocationBar(cell, barColor, maxScaleValue); }); } else if (allocationCells.length > 0) { console.warn("Mismatch cells count in", tableSelector, ". Applying default bars."); allocationCells.forEach(cell => applyAllocationBar(cell, allocationBarColor, 60)); } };
+    function processRowData(row) { const numericColumns = [ 'Year', 'Net_Assets_Billions', 'Annual_Return_Total_Fund_Pct', 'MER_bps', 'Allocation_Govt_Pct', 'Allocation_Credit_Pct', 'Allocation_PubEq_Pct', 'Allocation_PrivEq_Pct', 'Allocation_Infra_Pct', 'Allocation_RE_Pct', 'Allocation_Other_Pct', 'Perf_FI_1Yr_Pct', 'Perf_PubEq_1Yr_Pct', 'Perf_PrivEq_1Yr_Pct', 'Perf_Infra_1Yr_Pct', 'Perf_RE_1Yr_Pct', 'Perf_FI_3YrAnn_Pct', 'Perf_PubEq_3YrAnn_Pct', 'Perf_PrivEq_3YrAnn_Pct', 'Perf_Infra_3YrAnn_Pct', 'Perf_RE_3YrAnn_Pct', 'Perf_FI_5YrAnn_Pct', 'Perf_PubEq_5YrAnn_Pct', 'Perf_PrivEq_5YrAnn_Pct', 'Perf_Infra_5YrAnn_Pct', 'Perf_RE_5YrAnn_Pct']; const processed = { ...row }; for (const key in processed) { if (typeof processed[key] === 'string') { processed[key] = processed[key].trim(); } if (numericColumns.includes(key)) { processed[key] = (processed[key] === '' || processed[key] === undefined || processed[key] === null) ? null : parseFloat(processed[key]); if (isNaN(processed[key])) { processed[key] = null; } } } processed.Allocation_FI_Pct = null; if (processed.Allocation_Govt_Pct !== null || processed.Allocation_Credit_Pct !== null) { processed.Allocation_FI_Pct = (processed.Allocation_Govt_Pct || 0) + (processed.Allocation_Credit_Pct || 0); } return processed; };
+    function getDataForYear(data, targetYear) { const dataForYear = {}; const yearFilteredData = data.filter(row => row.Year === targetYear); maple9Labels.forEach(plan => { const row = yearFilteredData.find(r => r.Plan === plan); dataForYear[plan] = row || null; }); return dataForYear; };
+    function getRelevantPlansAndData(data, targetYear, targetFyeText) { const relevantPlans = []; const dataMap = {}; const lowerTargetFyeText = targetFyeText ? targetFyeText.toLowerCase() : null; const yearFilteredData = data.filter(row => row.Year === targetYear); yearFilteredData.forEach(row => { if (maple9Labels.includes(row.Plan)) { const rowFyeMonth = row.FYE_Month; if (rowFyeMonth && typeof rowFyeMonth === 'string' && rowFyeMonth.toLowerCase() === lowerTargetFyeText) { if (!dataMap[row.Plan]) { relevantPlans.push(row.Plan); dataMap[row.Plan] = row; } } } }); console.log(`Relevant plans for year ${targetYear}, FYE Text '${targetFyeText}':`, relevantPlans); return { relevantPlans, dataMap }; };
+    function getMetricForRelevantPlans(relevantPlans, dataMap, metric) { return relevantPlans.map(plan => dataMap[plan]?.[metric] ?? null); };
+    function getColorsForRelevantPlans(relevantPlans) { return relevantPlans.map(plan => planColors[plan] || planColors['fallback']); };
+    function getTimeSeriesData(data, metric, years) { const timeSeries = {}; maple9Labels.forEach(plan => { timeSeries[plan] = years.map(year => { const row = data.find(r => r.Plan === plan && r.Year === year); return row ? row[metric] : null; }); }); return timeSeries; };
+    function getMetricForAllPlans(dataMap, metric) { return maple9Labels.map(plan => dataMap[plan]?.[metric] ?? null); };
+    function formatPercent(value, decimals = 1) { return (value === null || value === undefined) ? 'N/A' : `${value.toFixed(decimals)}%`; };
+    function formatBillions(value) { return (value === null || value === undefined) ? 'N/A' : `${value.toFixed(1)}B`; };
+    function formatBps(value) { return (value === null || value === undefined) ? 'N/A' : `${value.toFixed(0)} bps`; };
+
+    // --- Dynamic Table Population ---
+    function populateTotalFundTable(targetYear) { const tableBody = document.querySelector('#total-fund tbody'); const yearSpan = document.getElementById('total-fund-year'); if (!tableBody || !yearSpan) { console.error("Total Fund table body or year span not found"); return; } const dataMap = getDataForYear(allPeerData, targetYear); yearSpan.textContent = targetYear; tableBody.innerHTML = ''; let row1 = '<tr><td class="text-left font-semibold">Annual Return</td>'; maple9Labels.forEach(plan => { row1 += `<td class="font-bold">${formatPercent(dataMap[plan]?.Annual_Return_Total_Fund_Pct)}</td>`; }); row1 += '</tr>'; tableBody.innerHTML += row1; let row2 = '<tr><td class="text-left">Net Assets ($B)</td>'; maple9Labels.forEach(plan => { row2 += `<td>${formatBillions(dataMap[plan]?.Net_Assets_Billions)}</td>`; }); row2 += '</tr>'; tableBody.innerHTML += row2; let row3 = '<tr><td class="text-left">Fiscal Year End</td>'; maple9Labels.forEach(plan => { const planData = dataMap[plan]; const fyeMonthString = planData?.FYE_Month; let fyeText = 'N/A'; if (typeof fyeMonthString === 'string') { const lowerFyeMonth = fyeMonthString.toLowerCase(); if (lowerFyeMonth === 'december') { fyeText = 'Dec 31'; } else if (lowerFyeMonth === 'march') { fyeText = 'Mar 31'; } } row3 += `<td>${fyeText}</td>`; }); row3 += '</tr>'; tableBody.innerHTML += row3; tableBody.innerHTML += '<tr class="asset-category"><td class="text-left" colspan="10">Asset Class (%)</td></tr>'; const assetClasses = [ { key: 'Allocation_Govt_Pct', label: 'Government' }, { key: 'Allocation_Credit_Pct', label: 'Credit' }, { key: 'Allocation_PubEq_Pct', label: 'Public Equity' }, { key: 'Allocation_PrivEq_Pct', label: 'Private Equity' }, { key: 'Allocation_Infra_Pct', label: 'Infrastructure' }, { key: 'Allocation_RE_Pct', label: 'Real Estate' }, { key: 'Allocation_Other_Pct', label: 'Other' }, ]; assetClasses.forEach(ac => { let row = `<tr><td class="text-left">${ac.label}</td>`; maple9Labels.forEach(plan => { row += `<td>${formatPercent(dataMap[plan]?.[ac.key])}</td>`; }); row += '</tr>'; tableBody.innerHTML += row; }); };
+
+    // *** MODIFIED populateAllocationTable (v17) ***
+    function populateAllocationTable(assetClassId, relevantPlans, dataMap, allocationMetric) {
+        const tableBody = document.querySelector(`#${assetClassId} .alloc-table-container tbody`);
+        if (!tableBody) { console.warn(`Allocation table body not found for ${assetClassId}`); return; }
+        tableBody.innerHTML = '';
+
+        let finalPlanOrder = [...relevantPlans]; // Copy to allow modification
+
+        // Reorder to put OMERS first if it exists and isn't already first
+        const omersIndex = finalPlanOrder.indexOf('OMERS');
+        if (omersIndex > 0) {
+            console.log(`Reordering table: Moving OMERS from index ${omersIndex} to 0 for ${assetClassId}`);
+            const omersPlan = finalPlanOrder.splice(omersIndex, 1)[0]; // Remove and get OMERS label
+            finalPlanOrder.unshift(omersPlan); // Add OMERS to the beginning
+        }
+
+        if (finalPlanOrder.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="2" class="text-center text-gray-500 italic py-4">No plans found matching the selected year/FYE criteria.</td></tr>`;
+            return;
+        }
+
+        // Build table rows using the potentially reordered plan list
+        finalPlanOrder.forEach(plan => {
+            const planData = dataMap[plan]; // Get data for the plan
+            const formattedValue = planData ? formatPercent(planData[allocationMetric]) : 'N/A';
+            const row = `<tr><td>${plan}</td><td>${formattedValue}</td></tr>`;
+            tableBody.innerHTML += row;
+        });
+
+        // Apply bars AFTER rows are added (relies on text content 'OMERS', not index)
+        applyAllocationBarsToTable(`#${assetClassId} .alloc-table-container table`);
+    };
+
+
+    // --- Chart Initialization (Wrapper) ---
+    const initializeChart = (canvasId, config) => { const canvas = document.getElementById(canvasId); if (!canvas) { console.warn(`Canvas element with ID ${canvasId} not found.`); return null; } try { if (chartInstances[canvasId]) { chartInstances[canvasId].destroy(); } canvas.style.backgroundColor = 'transparent'; const chart = new Chart(canvas.getContext('2d'), config); chartInstances[canvasId] = chart; console.log(`Chart initialized successfully for canvas: ${canvasId}`); return chart; } catch (e) { console.error(`Error initializing chart ${canvasId}:`, e); const ctx = canvas.getContext('2d'); if (ctx) { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = 'red'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.fillText(`Error loading chart: ${canvasId}`, canvas.width / 2, canvas.height / 2); } return null; } };
+
+    // --- Chart Config Helpers ---
+    Chart.register(ChartDataLabels);
+    const flatTooltipStyle = (valueFormatter = (val) => (val === null || val === undefined) ? 'N/A' : val.toFixed(1) + '%') => ({ enabled: true, backgroundColor: '#4b5563', titleColor: '#FFFFFF', bodyColor: '#FFFFFF', borderColor: '#374151', borderWidth: 1, cornerRadius: 4, padding: 6, displayColors: false, callbacks: { label: function(context) { let label = context.dataset.label || context.chart.data.labels[context.dataIndex] || ''; if (label) { label += ': '; } const value = context.parsed.x ?? context.parsed.y; label += valueFormatter(value); return label; }, title: function(tooltipItems) { return tooltipItems.length > 0 ? tooltipItems[0].label : ''; } } });
+    const basePerfBarChartOptions = (extraOptions = {}) => ({ responsive: true, maintainAspectRatio: false, layout: { padding: { top: 18, bottom: 2, left: 3, right: 3 } }, plugins: { legend: { display: false }, tooltip: flatTooltipStyle(), datalabels: { display: true, anchor: 'end', align: 'top', offset: 3, formatter: (value, context) => (value === null || value === undefined) ? '' : value.toFixed(1) + '%', font: { size: 9, weight: '500' }, color: '#444444', clamp: true } }, scales: { x: { grid: { display: false, drawBorder: false }, ticks: { font: { size: 10 }, color: '#4b5563' } }, y: { display: false, grid: { display: false }, beginAtZero: false, grace: '20%' } }, ...extraOptions });
+    const baseContribChartOptions = (extraOptions = {}) => ({ indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { top: 5, bottom: 5, left: 5, right: 35 } }, plugins: { legend: { display: false }, tooltip: flatTooltipStyle((val) => (val === null || val === undefined) ? 'N/A' : val.toFixed(2) + '%'), datalabels: { display: true, anchor: 'end', align: 'right', offset: 4, formatter: (value, context) => (value === null || value === undefined) ? '' : value.toFixed(2) + '%', font: { size: 8, weight: '500' }, color: '#333333', clamp: true } }, scales: { x: { grid: { display: true, color: gridLineColor, drawBorder: false, lineWidth: 1 }, ticks: { font: { size: 9 }, color: '#4b5563', callback: value => value.toFixed(1) + '%' }, title: { display: false }, grace: '10%' }, y: { grid: { display: false, drawBorder: false }, ticks: { font: { size: 9 }, color: '#4b5563' } } }, ...extraOptions });
+
+    // --- Specific Chart Config Functions ---
+    function createReturnsChartConfig(timeSeriesData, yearsForAxis) { const datasets = maple9Labels.map(plan => ({ label: plan, data: timeSeriesData[plan], borderColor: planColors[plan], backgroundColor: planColors[plan]+'33', tension: 0.1, fill: false, hidden: false })); return { type: 'line', data: { labels: yearsForAxis, datasets: datasets }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, callbacks: { label: function(context) { let label = context.dataset.label || ''; if (label) { label += ': '; } if (context.parsed.y !== null) { label += context.parsed.y.toFixed(1) + '%'; } else { label += 'N/A'; } return label; } } } }, scales: { x: { grid: { display: false }, title: { display: true, text: 'Year End', font: { size: 12 } }, ticks: { font: { size: 11 } } }, y: { grid: { display: true, color: gridLineColor }, title: { display: true, text: 'Annual Return (%)', font: { size: 12 } }, ticks: { callback: value => value + '%', font: { size: 11 } } } }, interaction: { mode: 'nearest', axis: 'x', intersect: false } } }; };
+    function createMerChartConfig(timeSeriesData, yearsForAxis) { const datasets = maple9Labels.map(plan => ({ label: plan, data: timeSeriesData[plan], borderColor: planColors[plan], backgroundColor: planColors[plan]+'33', tension: 0.1, fill: false, hidden: false })); return { type: 'line', data: { labels: yearsForAxis, datasets: datasets }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, callbacks: { label: function(context) { let label = context.dataset.label || ''; if (label) { label += ': '; } if (context.parsed.y !== null) { label += context.parsed.y.toFixed(0) + ' bps'; } else { label += 'N/A'; } return label; } } } }, scales: { x: { grid: { display: false }, title: { display: true, text: 'Year End', font: { size: 12 } }, ticks: { font: { size: 11 } } }, y: { grid: { display: true, color: gridLineColor }, title: { display: true, text: 'MER (bps)', font: { size: 12 } }, ticks: { font: { size: 11 } } } }, interaction: { mode: 'nearest', axis: 'x', intersect: false } } }; };
+    const createPerfChartConfig = (initialLabels, initialData, initialColors, labelSuffix) => ({ type: 'bar', data: { labels: initialLabels, datasets: [{ label: `Performance ${labelSuffix}`, data: initialData, backgroundColor: initialColors, borderWidth: 0 }] }, options: basePerfBarChartOptions() });
+    const createContributionChartConfig = (initialLabels, initialData, initialColors) => ({ type: 'bar', data: { labels: initialLabels, datasets: [{ label: 'Return Contribution', data: initialData, backgroundColor: initialColors, borderWidth: 0 }] }, options: baseContribChartOptions() });
+
+    // --- Update Asset Class Section ---
+    function updateAssetClassSection(assetClassId, fyeValueToUse, targetYear) {
+        const metrics = assetClassMetricMap[assetClassId];
+        const yearSpan = document.querySelector(`#${assetClassId} .asset-class-year`);
+        if (!metrics || !yearSpan) { console.error(`Missing elements for ${assetClassId}`); return; }
+        yearSpan.textContent = targetYear;
+        const targetFyeText = fyeValueToUse === 12 ? 'December' : (fyeValueToUse === 3 ? 'March' : null);
+
+        const { relevantPlans, dataMap } = getRelevantPlansAndData(allPeerData, targetYear, targetFyeText);
+
+        // --- Populate Table (with OMERS first logic included) ---
+        populateAllocationTable(assetClassId, relevantPlans, dataMap, metrics.alloc);
+
+        // --- Prepare data for charts (with OMERS first logic) ---
+        let initialPerf1yr = getMetricForRelevantPlans(relevantPlans, dataMap, metrics.ret1);
+        let initialPerf3yr = getMetricForRelevantPlans(relevantPlans, dataMap, metrics.ret3);
+        let initialPerf5yr = getMetricForRelevantPlans(relevantPlans, dataMap, metrics.ret5);
+        let initialContributions = relevantPlans.map(plan => { const planData = dataMap[plan]; if (!planData) return null; const alloc = planData[metrics.alloc]; const ret = planData[metrics.ret1]; if (alloc === null || ret === null || alloc === undefined || ret === undefined) return null; if (typeof alloc !== 'number' || typeof ret !== 'number') return null; return (alloc / 100.0) * ret; });
+        let initialBarColors = getColorsForRelevantPlans(relevantPlans);
+        let finalPlanLabels = [...relevantPlans]; // Copy labels for reordering
+
+        const omersIndex = finalPlanLabels.indexOf('OMERS');
+        if (omersIndex > 0) {
+            console.log(`Reordering charts: Moving OMERS from index ${omersIndex} to 0 for ${assetClassId}`);
+            const omersLabel = finalPlanLabels.splice(omersIndex, 1)[0];
+            const omersPerf1yr = initialPerf1yr.splice(omersIndex, 1)[0];
+            const omersPerf3yr = initialPerf3yr.splice(omersIndex, 1)[0];
+            const omersPerf5yr = initialPerf5yr.splice(omersIndex, 1)[0];
+            const omersContrib = initialContributions.splice(omersIndex, 1)[0];
+            const omersColor = initialBarColors.splice(omersIndex, 1)[0];
+            finalPlanLabels.unshift(omersLabel);
+            initialPerf1yr.unshift(omersPerf1yr);
+            initialPerf3yr.unshift(omersPerf3yr);
+            initialPerf5yr.unshift(omersPerf5yr);
+            initialContributions.unshift(omersContrib);
+            initialBarColors.unshift(omersColor);
+        }
+        const finalPerf1yr = initialPerf1yr;
+        const finalPerf3yr = initialPerf3yr;
+        const finalPerf5yr = initialPerf5yr;
+        const finalContributions = initialContributions;
+        const finalBarColors = initialBarColors;
+        // --- End data preparation ---
+
+        const chart1yr = chartInstances[`${assetClassId}Perf1yrChart`];
+        const chart3yr = chartInstances[`${assetClassId}Perf3yrChart`];
+        const chart5yr = chartInstances[`${assetClassId}Perf5yrChart`];
+        const chartContrib = chartInstances[`${assetClassId}ContribChart`];
+        const updateBarChart = (chart, labels, data, colors) => { if (chart) { chart.data.labels = labels; chart.data.datasets[0].data = data; if (chart.data.datasets[0].backgroundColor) { chart.data.datasets[0].backgroundColor = colors; } if (labels.length === 0) { /* Log handled elsewhere */ } chart.update(); console.log(`Updated chart ${chart.canvas.id} with ${labels.length} plans:`, labels); } else { console.warn(`Chart instance not found when trying to update ID like ${assetClassId}Perf...`); } };
+
+        updateBarChart(chart1yr, finalPlanLabels, finalPerf1yr, finalBarColors);
+        updateBarChart(chart3yr, finalPlanLabels, finalPerf3yr, finalBarColors);
+        updateBarChart(chart5yr, finalPlanLabels, finalPerf5yr, finalBarColors);
+        updateBarChart(chartContrib, finalPlanLabels, finalContributions, finalBarColors);
+    };
+
+    // Function to update all year-dependent sections
+    function updateDashboardForYear(newSelectedYear) { if (!allPeerData || allPeerData.length === 0) { console.warn("Data not loaded yet."); return; } console.log(`--- Updating dashboard for selected year: ${newSelectedYear} ---`); selectedYear = newSelectedYear; document.querySelectorAll('#year-list-container .year-item').forEach(item => { item.classList.toggle('active-year', parseInt(item.dataset.year) === selectedYear); }); populateTotalFundTable(selectedYear); Object.keys(assetClassMetricMap).forEach(assetClassId => { updateAssetClassSection(assetClassId, selectedFyeValue, selectedYear); }); console.log(`--- Dashboard update complete for year: ${selectedYear} ---`); };
+
+    // --- Initialization and Event Listeners ---
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log("DOM Loaded. Preparing to parse embedded CSV data...");
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const sections = document.querySelectorAll('.scroll-section');
+        loadingIndicator.classList.remove('hidden'); sections.forEach(sec => sec.classList.add('hidden'));
+
+        // --- EMBEDDED CSV DATA ---[paste csv data here]
+        const csvData = `Plan,Year,FYE_Month,Net_Assets_Billions,Annual_Return_Total_Fund_Pct,MER_bps,Allocation_Govt_Pct,Allocation_Credit_Pct,Allocation_PubEq_Pct,Allocation_PrivEq_Pct,Allocation_Infra_Pct,Allocation_RE_Pct,Allocation_Other_Pct,Perf_FI_1Yr_Pct,Perf_PubEq_1Yr_Pct,Perf_PrivEq_1Yr_Pct,Perf_Infra_1Yr_Pct,Perf_RE_1Yr_Pct,Perf_FI_3YrAnn_Pct,Perf_PubEq_3YrAnn_Pct,Perf_PrivEq_3YrAnn_Pct,Perf_Infra_3YrAnn_Pct,Perf_RE_3YrAnn_Pct,Perf_FI_5YrAnn_Pct,Perf_PubEq_5YrAnn_Pct,Perf_PrivEq_5YrAnn_Pct,Perf_Infra_5YrAnn_Pct,Perf_RE_5YrAnn_Pct,Contrib_FI_1Yr_Pct,Contrib_PubEq_1Yr_Pct,Contrib_PrivEq_1Yr_Pct,Contrib_Infra_1Yr_Pct,Contrib_RE_1Yr_Pct,Contrib_FI_3YrAnn_Pct,Contrib_PubEq_3YrAnn_Pct,Contrib_PrivEq_3YrAnn_Pct,Contrib_Infra_3YrAnn_Pct,Contrib_RE_3YrAnn_Pct,Contrib_FI_5YrAnn_Pct,Contrib_PubEq_5YrAnn_Pct,Contrib_PrivEq_5YrAnn_Pct,Contrib_Infra_5YrAnn_Pct,Contrib_RE_5YrAnn_Pct,Geo_Alloc_NA_Pct,Geo_Alloc_Europe_Pct,Geo_Alloc_Asia_Pct,Geo_Alloc_Aus_Pct,Geo_Alloc_Other_Pct
+AIMCO,2017,December,107.9,9.30%,,,29%,39%,3%,6%,13%,11%,3.50%,16.20%,0.00%,9.20%,9.00%,,,,,,,,,,,1.00%,6.40%,0.00%,0.50%,1.20%,,,,,,,,,,,,,,,
+AIMCO,2018,December,113.4,2.30%,,,30%,34%,3%,7%,14%,13%,1.70%,-4.60%,14.70%,13.70%,12.20%,,,,,,,,,,,0.60%,-2.20%,0.60%,1.00%,1.90%,0.80%,2.70%,0.20%,0.70%,1.20%,,,,,,,,,,
+AIMCO,2019,December,124.5,10.60%,,,28%,37%,3%,8%,12%,12%,3.50%,16.20%,0.00%,9.20%,9.00%,2.90%,8.80%,4.70%,10.70%,10.10%,,,,,,2.20%,6.60%,0.10%,0.60%,0.60%,1.20%,3.60%,0.20%,0.70%,1.10%,1.10%,3.80%,0.20%,0.70%,1.00%,,,,,
+AIMCO,2020,December,125.7,2.50%,,,30%,38%,4%,8%,12%,9%,8.50%,3.70%,7.20%,-3.50%,-13.60%,4.50%,4.80%,7.10%,6.20%,1.90%,,,,,,3.00%,1.70%,0.30%,-0.30%,-2.10%,1.90%,2.20%,0.30%,0.40%,0.10%,1.50%,3.30%,0.20%,0.40%,0.40%,,,,,
+AIMCO,2021,December,147.1,14.70%,,,31%,35%,6%,7%,12%,9%,-1.10%,23.40%,68.50%,19.00%,14.50%,3.60%,14.10%,21.80%,7.80%,2.50%,3.20%,10.50%,15.70%,9.30%,5.70%,-0.30%,8.90%,2.70%,1.50%,1.70%,1.40%,5.70%,1.10%,0.60%,0.20%,1.20%,4.40%,0.80%,0.60%,0.60%,,,,,
+AIMCO,2022,December,145.8,-3.40%,,,30%,29%,8%,12%,16%,6%,-8.30%,-10.00%,0.50%,16.80%,4.60%,-0.50%,4.80%,22.00%,10.30%,1.10%,0.70%,5.00%,15.80%,10.70%,4.80%,-2.30%,-3.10%,0.00%,1.10%,0.50%,-0.30%,2.20%,1.10%,0.90%,0.20%,0.30%,2.30%,0.80%,0.90%,0.60%,,,,,
+AIMCO,2023,December,168.8,6.90%,,,28%,34%,8%,12%,13%,4%,5.80%,16.10%,6.70%,3.80%,-8.40%,-1.40%,8.80%,21.80%,13.00%,3.10%,1.50%,9.20%,14.10%,8.70%,0.70%,2.00%,5.20%,0.60%,0.50%,-1.50%,-0.50%,3.40%,1.10%,1.20%,0.30%,0.60%,3.70%,0.80%,0.80%,-0.10%,,,,,
+AIMCO,2024,December,189.8,12.30%,66,,32%,31%,8%,12%,12%,5%,3.50%,25.70%,11.80%,12.00%,-2.00%,0.20%,9.50%,6.20%,10.70%,-2.10%,1.50%,10.90%,16.70%,9.30%,-1.50%,1.03%,9.11%,0.94%,1.45%,-0.26%,-1.36%,8.84%,21.80%,13.00%,3.14%,2.18%,9.64%,14.99%,8.38%,-0.29%,,,,,
+BCIMC,2018,March,145.6,9.00%,,,24%,44%,7%,10%,14%,0%,,,20.00%,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+BCIMC,2019,March,129.4,6.10%,,,21%,41%,9%,11%,16%,2%,,,16.50%,,,,,,,,,,,,,,,,1.30%,0.10%,,,,,,,,,,,,,,,
+BCIMC,2020,March,132.1,3.00%,,,24%,44%,7%,10%,14%,-7%,,,16.20%,6.30%,,,,17.55%,,,,,,,,,,1.70%,0.70%,,,,,,,,,,,,,,,,
+BCIMC,2021,March,152.6,16.50%,,,37%,34%,12%,11%,15%,-9%,,,24.30%,7.90%,,,,18.94%,,,,,,,,,,3.00%,0.90%,,,,,,,,,,,,,,,,
+BCIMC,2022,March,162.6,7.40%,,,39%,30%,14%,11%,17%,-10%,,4.00%,29.70%,12.10%,,,,23.27%,8.74%,,,,21.23%,,,-1.60%,1.30%,3.90%,1.30%,,,,,,,,,,,,,,,,
+BCIMC,2023,March,166.8,3.50%,,,37%,28%,15%,11%,18%,-9%,,1.30%,4.70%,9.20%,,,,19.07%,9.72%,,,,17.97%,,,,0.40%,0.70%,1.00%,,,,,,,,,,,,,,,,
+BCIMC,2024,March,178.3,7.50%,,,37%,26%,15%,13%,16%,-10%,,,6.00%,7.00%,-5.00%,,,12.91%,9.41%,,,,15.76%,8.48%,,,,0.90%,0.80%,,,,,,,,,,,,,,,,
+BCIMC,2025,March,195,10.00%,,,42%,23%,15%,13%,22%,-16%,7.80%,,13.40%,8.30%,-1.80%,,,7.97%,8.16%,,,,15.20%,8.89%,,3.09%,,2.02%,1.10%,-0.34%,,,1.20%,1.02%,-0.01%,,,15.20%,8.89%,2.80%,,,,,
+CDPQ,2018,December,309.5,4.20%,,,30%,35%,14%,7%,12%,1%,2.20%,-0.90%,16.60%,11.20%,7.80%,,,,,,,,,,,0.70%,-0.40%,2.10%,0.70%,1.00%,0.90%,2.70%,1.70%,0.60%,1.10%,1.40%,3.50%,1.50%,0.60%,1.10%,,,,,
+CDPQ,2019,December,340.1,10.40%,,,30%,34%,15%,8%,12%,1%,8.80%,17.20%,10.50%,7.10%,-2.70%,,,,,,,,,,,2.70%,5.90%,1.50%,0.60%,-0.40%,1.50%,3.50%,1.70%,0.60%,0.50%,1.40%,3.70%,1.50%,0.60%,0.80%,,,,,
+CDPQ,2020,December,365.5,7.70%,,,30%,32%,18%,9%,10%,2%,8.90%,8.30%,20.70%,5.10%,-15.60%,6.60%,7.90%,15.90%,7.80%,-4.00%,,,,,,2.70%,2.90%,3.40%,0.40%,-2.00%,2.00%,2.80%,2.30%,0.60%,-0.50%,1.70%,3.40%,2.00%,0.60%,0.10%,,,,,
+CDPQ,2021,December,419.8,13.50%,,,30%,28%,20%,11%,10%,1%,-0.10%,16.20%,39.20%,14.50%,12.40%,5.80%,13.80%,22.90%,8.80%,-2.60%,,,,,,-0.10%,4.70%,6.50%,1.50%,1.30%,1.60%,4.40%,3.90%,0.90%,-0.30%,1.30%,3.60%,3.10%,0.80%,0.20%,,,,,
+CDPQ,2022,December,401.9,-5.60%,,,29%,25%,20%,14%,12%,1%,-14.90%,-11.30%,2.80%,11.50%,12.40%,-2.50%,3.70%,20.00%,10.30%,2.20%,0.60%,5.30%,17.30%,9.80%,2.30%,-4.60%,-3.20%,0.40%,1.20%,1.20%,-1.20%,1.20%,3.60%,1.20%,0.30%,-0.10%,1.80%,3.00%,1.00%,0.30%,,,,,
+CDPQ,2023,December,434.2,7.20%,,,30%,26%,18%,14%,11%,1%,8.10%,17.70%,1.00%,9.60%,-6.20%,-2.80%,6.70%,13.10%,11.80%,5.80%,1.70%,9.00%,14.00%,9.50%,-0.50%,2.50%,4.10%,0.10%,1.30%,-0.80%,-1.00%,1.70%,2.40%,1.40%,0.60%,0.30%,2.70%,2.50%,1.10%,0.00%,,,,,
+CDPQ,2024,December,473.3,9.40%,,,32%,27%,19%,14%,9%,-1%,1.10%,25.50%,17.20%,9.50%,-10.80%,-2.40%,9.40%,6.80%,10.20%,-2.00%,0.20%,10.50%,15.40%,10.00%,-2.30%,0.40%,6.50%,3.10%,1.30%,-1.20%,-0.70%,2.40%,1.20%,1.30%,-0.20%,0.00%,3.00%,2.70%,1.20%,-0.30%,,,,,
+CPPIB,2018,March,356.3,11.20%,,,28%,39%,20%,8%,13%,-8%,2.83%,11.37%,16.06%,15.20%,9.40%,,,,,,,,,,,0.90%,4.30%,3.10%,1.20%,1.20%,0.90%,3.00%,2.60%,0.80%,1.30%,,,,,,,,,,
+CPPIB,2019,March,392,9.70%,,,31%,33%,24%,9%,12%,-9%,5.99%,6.30%,17.00%,14.00%,6.40%,,,,,,,,,,,1.80%,2.30%,3.70%,1.20%,0.80%,1.20%,4.30%,3.40%,1.00%,1.00%,1.60%,3.40%,3.50%,0.90%,1.30%,,,,,
+CPPIB,2020,March,409.6,4.10%,,,28%,39%,20%,8%,13%,-9%,2.83%,11.37%,16.06%,15.20%,9.40%,3.87%,9.66%,16.37%,14.80%,8.39%,,,,,,3.20%,-0.80%,1.50%,-0.10%,0.60%,1.90%,1.60%,3.00%,0.80%,0.80%,1.50%,1.90%,2.70%,0.70%,1.00%,,,,,
+CPPIB,2021,March,497.2,20.00%,,,33%,29%,27%,8%,9%,-6%,-4.64%,31.70%,34.40%,12.90%,-4.10%,1.29%,15.96%,22.20%,14.03%,3.74%,,,,,,-1.50%,9.10%,8.80%,1.10%,-0.40%,1.20%,3.30%,4.70%,0.70%,0.30%,1.10%,4.20%,4.00%,0.80%,0.60%,,,,,
+CPPIB,2022,March,539.4,7.20%,,,23%,27%,31%,9%,9%,0%,-1.95%,1.30%,18.60%,10.80%,10.20%,-1.31%,14.11%,22.76%,12.95%,4.96%,0.94%,11.96%,20.23%,13.61%,6.12%,-0.40%,0.40%,5.40%,0.90%,0.90%,0.30%,2.60%,5.30%,0.60%,0.30%,0.70%,2.80%,4.60%,0.90%,0.60%,,,,,
+CPPIB,2023,March,570.3,3.40%,,,25%,24%,33%,9%,9%,0%,3.83%,0.30%,6.80%,5.60%,-1.20%,-0.99%,10.20%,19.40%,9.72%,1.45%,1.13%,9.64%,18.24%,11.65%,3.98%,0.80%,0.10%,2.20%,0.50%,-0.10%,-0.30%,2.70%,5.90%,0.90%,0.10%,0.70%,2.00%,4.30%,0.70%,0.30%,,,,,
+CPPIB,2024,March,632.6,8.00%,,,25%,28%,31%,8%,8%,0%,5.25%,13.80%,10.40%,2.60%,-5.00%,2.33%,4.96%,11.83%,6.28%,1.13%,0.99%,11.14%,16.88%,9.32%,1.65%,1.30%,3.60%,3.40%,0.20%,-0.40%,0.60%,1.30%,3.80%,0.60%,0.10%,0.70%,2.20%,4.40%,0.50%,0.10%,,,,,
+CPPIB,2025,March,714.8,10.50%,,,26%,29%,29%,9%,7%,0%,11.31%,10.60%,11.80%,9.40%,3.80%,6.75%,8.08%,9.65%,5.83%,-0.87%,2.61%,10.99%,16.01%,8.20%,0.59%,2.80%,3.02%,3.57%,0.80%,0.28%,1.70%,2.17%,3.01%,0.51%,-0.07%,0.69%,2.23%,4.86%,0.71%,0.05%,,,,,
+HOOPP,2017,December,77.8,10.90%,,,,,9%,0%,0%,,0.00%,9.80%,19.60%,0.00%,11.90%,,,,,,,,,,,,,1.60%,,1.40%,,,1.30%,,1.20%,,,1.20%,,1.20%,,,,,
+HOOPP,2018,December,79,2.20%,,,,,12%,0%,0%,,0.00%,-6.60%,13.70%,0.00%,8.90%,,,,,,,,,,,0.00%,0.00%,1.40%,0.00%,1.20%,,,1.50%,,1.30%,,,1.30%,,1.20%,,,,,
+HOOPP,2019,December,94.1,17.10%,,,,,10%,0%,0%,,0.00%,21.40%,14.00%,0.00%,8.40%,,,,,,,,,,,0.00%,0.00%,1.60%,0.00%,1.30%,,,1.50%,,1.30%,,,1.30%,,1.20%,,,,,
+HOOPP,2020,December,104,11.40%,,,,,11%,0%,15%,,0.00%,8.00%,10.50%,7.30%,0.20%,0.00%,7.00%,12.70%,2.40%,5.80%,,,,,,0.00%,0.00%,1.10%,0.00%,0.00%,,,1.30%,0.00%,0.80%,,,1.40%,0.00%,1.00%,,,,,
+HOOPP,2021,December,114.4,11.30%,,,,,12%,0%,18%,,0.00%,30.00%,23.70%,14.20%,12.50%,0.00%,19.50%,15.90%,7.00%,6.90%,,,,,,0.00%,0.00%,2.60%,0.20%,1.60%,,,1.80%,0.10%,1.00%,,,1.70%,0.00%,1.10%,,,,,
+HOOPP,2022,December,103.7,-8.60%,,,,,17%,5%,20%,,,,11.00%,9.40%,4.00%,0.00%,12.00%,14.90%,10.30%,5.40%,0.00%,9.70%,14.50%,6.00%,6.70%,-8.30%,-3.70%,1.40%,0.30%,0.50%,-0.60%,1.40%,1.80%,0.20%,0.80%,1.00%,1.80%,1.70%,0.10%,0.90%,,,,,
+HOOPP,2023,December,112.6,9.40%,,,,,16%,5%,17%,,,15.70%,14.10%,8.20%,-6.50%,0.00%,14.60%,16.20%,10.60%,3.00%,0.00%,14.50%,14.60%,7.70%,3.50%,3.50%,4.30%,1.90%,-0.20%,-1.00%,-1.80%,2.10%,2.10%,0.30%,0.40%,1.50%,2.50%,3.00%,0.20%,0.40%,,,,,
+HOOPP,2024,December,123,9.70%,,,,,14%,6%,17%,,1.90%,17.90%,12.70%,12.30%,1.40%,0.60%,10.90%,12.60%,9.90%,-0.50%,0.40%,13.90%,14.30%,10.20%,2.10%,1.80%,4.60%,1.70%,0.70%,0.20%,-0.90%,1.60%,1.60%,0.40%,-0.10%,0.90%,2.60%,1.80%,0.30%,0.30%,,,,,
+OMERS,2017,December,96.4,11.50%,,,29%,34%,12%,16%,14%,-6%,4.30%,14.70%,11.10%,12.30%,11.40%,,,,,,,,,,,1.40%,4.60%,1.40%,2.10%,1.60%,,,,,,,,,,,,,,,
+OMERS,2018,December,98.7,2.30%,,,57%,66%,29%,36%,37%,-125%,6.90%,-2.10%,27.30%,23.20%,20.20%,,,,,,,,,,,0.50%,-3.00%,1.70%,1.70%,1.30%,1.50%,1.10%,1.60%,2.00%,1.70%,,,,,,,,,,
+OMERS,2019,December,110.8,11.90%,,,44%,58%,28%,39%,32%,-101%,18.10%,25.70%,18.50%,19.20%,16.00%,,,,,,,,,,,1.70%,6.10%,0.70%,1.80%,1.50%,1.20%,2.50%,1.20%,1.80%,1.50%,,,,,,,,,,
+OMERS,2020,December,107.3,-2.70%,,,46%,62%,28%,41%,28%,-104%,-2.40%,-16.70%,-18.20%,16.30%,-16.40%,,,,,,,,,,,-0.60%,-0.50%,-1.00%,1.60%,-1.70%,0.50%,0.80%,0.40%,1.70%,0.30%,1.10%,1.90%,0.80%,1.90%,0.80%,,,,,
+OMERS,2021,December,122.5,15.70%,,,39%,59%,32%,39%,32%,-102%,12.00%,63.90%,38.80%,22.40%,20.00%,2.70%,13.80%,6.40%,9.40%,3.60%,2.80%,9.20%,8.70%,10.20%,6.10%,1.00%,6.20%,3.80%,2.10%,2.40%,0.60%,3.80%,1.10%,1.80%,0.60%,0.70%,2.60%,1.30%,1.90%,0.90%,,,,,
+OMERS,2022,December,126.3,4.20%,,,54%,52%,34%,41%,34%,-116%,8.00%,-0.20%,39.10%,23.00%,31.60%,0.90%,2.60%,9.40%,10.60%,5.30%,2.20%,3.60%,9.20%,10.20%,6.50%,0.40%,-3.60%,2.20%,2.40%,2.20%,0.20%,0.50%,1.60%,2.00%,0.90%,0.60%,0.90%,1.40%,1.90%,1.10%,,,,,
+OMERS,2023,December,130.5,4.60%,,,29%,20%,19%,21%,15%,-4%,7.60%,10.40%,3.90%,5.50%,-7.20%,4.40%,5.50%,14.10%,9.50%,6.90%,3.40%,7.50%,7.30%,9.20%,3.20%,2.00%,2.20%,0.70%,1.20%,-1.20%,1.20%,1.50%,2.20%,1.90%,1.10%,0.90%,1.90%,1.30%,1.80%,0.60%,,,,,
+OMERS,2024,December,140.1,8.30%,,,33%,20%,20%,23%,13%,-9%,7.20%,18.80%,9.50%,8.80%,-4.90%,5.30%,4.90%,9.00%,8.90%,0.10%,3.50%,7.20%,8.30%,9.20%,0.60%,2.30%,3.60%,1.80%,1.90%,-0.70%,1.60%,0.80%,1.60%,1.80%,0.00%,1.00%,1.50%,1.50%,1.80%,0.10%,,,,,
+OMERS,2018,March,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+OMERS,2019,March,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+OMERS,2020,March,,,,,,,,,,,,,,,,5.60%,-2.90%,5.40%,10.20%,4.50%,,,,,,,,,,,,,,,,,,,,,,,,,
+OMERS,2021,March,,,,,,,,,,,,,,,,6.40%,7.30%,5.10%,9.90%,2.10%,,,,,,,,,,,,,,,,,,,,,,,,,
+OMERS,2022,March,,,,,,,,,,,,,,,,4.90%,9.40%,8.50%,9.90%,5.30%,6.20%,7.90%,10.60%,10.60%,7.00%,,,,,,,,,,,,,,,,,,,,
+OMERS,2023,March,,,,,,,,,,,,,,,,4.70%,17.00%,12.30%,7.30%,7.10%,5.10%,6.60%,7.80%,8.00%,4.70%,,,,,,,,,,,,,,,,,,,,
+OMERS,2024,March,,,,,,,,,,,,,,,,2.20%,3.80%,7.80%,3.40%,5.70%,2.90%,5.50%,5.00%,5.90%,3.20%,,,,,,,,,,,,,,,,,,,,
+OTPP,2018,December,187.6,2.50%,,,50%,22%,18%,9%,15%,-14%,3.40%,-3.30%,19.50%,8.80%,5.80%,,,,,,,,,,,0.10%,-1.40%,2.50%,0.70%,0.60%,1.00%,1.20%,3.40%,0.90%,1.00%,2.10%,2.00%,5.40%,1.10%,1.30%,,,,,
+OTPP,2019,December,204,10.40%,,,54%,26%,19%,8%,14%,-21%,6.50%,13.40%,9.40%,4.20%,6.20%,,,,,,,,,,,4.00%,2.50%,1.80%,0.40%,0.80%,2.00%,1.90%,3.90%,1.00%,0.90%,1.70%,1.90%,4.30%,1.00%,1.10%,,,,,
+OTPP,2020,December,217.9,8.60%,,,24%,28%,19%,8%,12%,9%,18.00%,11.60%,13.50%,2.60%,-13.70%,9.10%,7.00%,14.10%,5.20%,-1.00%,,,,,,9.70%,3.00%,2.60%,0.20%,-1.90%,3.90%,1.80%,0.80%,0.40%,-0.10%,2.60%,2.00%,0.50%,0.60%,0.30%,,,,,
+OTPP,2021,December,239,11.10%,,,29%,22%,23%,11%,11%,3%,-2.90%,8.70%,29.00%,7.90%,2.50%,6.80%,11.20%,17.00%,4.90%,-2.10%,,,,,,-0.70%,2.40%,5.60%,0.60%,0.30%,2.40%,2.80%,3.50%,0.40%,-0.30%,2.10%,2.10%,3.40%,0.80%,0.20%,,,,,
+OTPP,2022,December,244.1,4.00%,,,50%,19%,24%,16%,12%,-21%,-1.00%,3.30%,6.10%,18.70%,-3.50%,4.30%,7.80%,15.80%,9.50%,-5.10%,4.50%,6.60%,15.20%,8.30%,-0.80%,-0.30%,0.70%,1.40%,2.00%,-0.40%,1.50%,1.80%,3.50%,1.10%,-0.60%,1.90%,1.50%,3.40%,0.90%,-0.10%,,,,,
+OTPP,2023,December,243.9,1.90%,,,55%,20%,24%,16%,12%,-26%,3.50%,9.10%,3.60%,-2.80%,-5.90%,-0.20%,7.00%,12.30%,7.60%,-2.40%,4.50%,9.20%,12.00%,5.90%,-3.10%,1.70%,1.70%,0.70%,-0.50%,-0.70%,-0.10%,1.40%,3.00%,1.10%,-0.30%,1.90%,2.10%,2.80%,0.70%,-0.40%,,,,,
+OTPP,2024,December,260.9,9.40%,,,44%,25%,27%,17%,11%,-25%,8.60%,24.10%,13.30%,9.10%,-0.70%,3.60%,11.80%,7.60%,8.00%,-3.40%,5.00%,11.10%,12.80%,6.90%,-4.40%,4.80%,4.70%,3.60%,1.50%,-0.10%,1.80%,2.50%,1.90%,1.30%,-0.40%,2.00%,2.50%,3.00%,0.90%,-0.50%,,,,,
+PSP,2018,March,153.1,9.80%,,,22%,34%,13%,10%,15%,7%,2.70%,11.30%,12.90%,19.30%,13.60%,,,,,,,,,,,0.60%,3.80%,1.40%,1.60%,1.90%,0.70%,3.20%,0.50%,1.10%,1.70%,,,,,,,,,,
+PSP,2019,March,168,7.10%,,,24%,30%,14%,10%,14%,8%,5.96%,4.30%,16.10%,7.10%,7.60%,,,,,,,,,,,1.30%,1.30%,2.00%,0.70%,1.00%,1.00%,4.40%,1.10%,1.10%,1.60%,1.00%,3.70%,0.90%,1.00%,1.70%,,,,,
+PSP,2020,March,169.8,-0.60%,,,22%,34%,13%,10%,15%,5%,2.70%,11.30%,12.90%,19.30%,13.60%,3.78%,8.92%,13.96%,15.09%,11.56%,,,,,,6.40%,-9.90%,2.00%,2.60%,-1.90%,1.30%,0.50%,1.30%,1.00%,0.70%,1.10%,1.40%,0.80%,1.00%,1.10%,,,,,
+PSP,2021,March,204.5,18.40%,,,25%,29%,16%,9%,13%,8%,1.40%,48.10%,28.40%,4.50%,3.80%,3.34%,19.80%,18.95%,10.12%,8.26%,,,,,,0.20%,12.30%,4.10%,0.50%,0.60%,1.10%,3.40%,2.10%,0.60%,0.30%,1.00%,4.40%,1.60%,0.90%,0.80%,,,,,
+PSP,2022,March,230.5,10.90%,,,27%,26%,15%,10%,13%,8%,0.88%,6.00%,27.60%,13.90%,24.80%,1.66%,20.44%,22.75%,12.40%,13.74%,2.71%,15.19%,19.38%,12.65%,12.46%,0.20%,1.70%,4.00%,1.30%,3.00%,0.70%,3.30%,2.90%,0.80%,1.10%,0.80%,3.00%,2.40%,0.90%,1.20%,,,,,
+PSP,2023,March,243.7,4.40%,,,29%,22%,15%,12%,13%,8%,5.49%,-0.50%,3.30%,19.00%,0.20%,2.57%,16.03%,19.17%,12.30%,9.08%,3.26%,12.64%,17.28%,12.60%,9.67%,1.50%,-0.20%,0.50%,1.80%,0.00%,0.80%,4.10%,2.80%,1.30%,1.30%,1.00%,2.20%,2.20%,1.10%,0.80%,,,,,
+PSP,2024,March,264.9,7.20%,,,31%,21%,15%,13%,10%,9%,7.76%,17.50%,12.10%,14.30%,-15.90%,4.67%,7.41%,13.90%,15.71%,1.69%,3.61%,15.36%,16.46%,14.07%,4.40%,1.90%,3.30%,1.70%,1.70%,-2.00%,1.30%,1.60%,2.00%,1.60%,0.20%,1.20%,2.60%,2.10%,1.30%,0.10%,,,,,
+PSP,2025,March,299.6,12.60%,,,32%,27%,14%,11%,9%,8%,12.06%,15.10%,16.60%,17.80%,0.00%,8.40%,10.40%,10.53%,17.02%,-5.55%,5.44%,16.13%,17.21%,13.78%,1.77%,3.76%,3.34%,2.36%,,,2.38%,2.14%,,,,,,,,,,,,,
+`;
+
+        // --- MODIFIED Papa Parse Call ---
+        Papa.parse(csvData, {
+            header: true, skipEmptyLines: true,
+            complete: function(results) {
+                console.log("Embedded CSV Parsing Complete. Processing data...");
+                if (results.errors.length > 0) { console.error("CSV Parsing Errors:", results.errors); loadingIndicator.innerHTML = '<p style="color: red; text-align: center;">Error parsing CSV data. Check console.</p>'; return; }
+                try {
+                    allPeerData = results.data.map(processRowData);
+                    console.log("Processed Peer Data Samples:", allPeerData.slice(0, 5));
+
+                    ALL_AVAILABLE_YEARS = [...new Set(allPeerData.map(d => d.Year).filter(y => y !== null && !isNaN(y)))].sort((a, b) => b - a);
+                    DATA_YEARS = ALL_AVAILABLE_YEARS.filter(year => year >= MIN_CHART_YEAR).sort((a, b) => a - b); // Ascending for charts
+                    selectedYear = ALL_AVAILABLE_YEARS.length > 0 ? ALL_AVAILABLE_YEARS[0] : new Date().getFullYear();
+                    selectedFyeValue = DEFAULT_FYE_VALUE;
+
+                    console.log("All Available Years (Side Panel):", ALL_AVAILABLE_YEARS);
+                    console.log("Filtered Years (Trend Charts):", DATA_YEARS);
+                    console.log("Initial selected year:", selectedYear);
+                    console.log("Initial selected FYE value:", selectedFyeValue);
+
+                    const yearListContainer = document.getElementById('year-list-container');
+                    yearListContainer.innerHTML = '';
+                    ALL_AVAILABLE_YEARS.forEach(year => { const yearDiv = document.createElement('div'); yearDiv.classList.add('year-item'); yearDiv.dataset.year = year; yearDiv.textContent = year; yearListContainer.appendChild(yearDiv); });
+
+                    const returnsTimeSeries = getTimeSeriesData(allPeerData, 'Annual_Return_Total_Fund_Pct', DATA_YEARS);
+                    const merTimeSeries = getTimeSeriesData(allPeerData, 'MER_bps', DATA_YEARS);
+                    initializeChart('returnsChart', createReturnsChartConfig(returnsTimeSeries, DATA_YEARS));
+                    initializeChart('merChart', createMerChartConfig(merTimeSeries, DATA_YEARS));
+
+                    Object.keys(assetClassMetricMap).forEach(assetClassId => { const perf1yrId = `${assetClassId}Perf1yrChart`; const perf3yrId = `${assetClassId}Perf3yrChart`; const perf5yrId = `${assetClassId}Perf5yrChart`; const contribId = `${assetClassId}ContribChart`; if (document.getElementById(perf1yrId)) { initializeChart(perf1yrId, createPerfChartConfig([], [], [], '1-Yr')); } else { console.warn(`Initialization skipped: Canvas ${perf1yrId} not found.`); } if (document.getElementById(perf3yrId)) { initializeChart(perf3yrId, createPerfChartConfig([], [], [], '3-Yr Ann.')); } else { console.warn(`Initialization skipped: Canvas ${perf3yrId} not found.`); } if (document.getElementById(perf5yrId)) { initializeChart(perf5yrId, createPerfChartConfig([], [], [], '5-Yr Ann.')); } else { console.warn(`Initialization skipped: Canvas ${perf5yrId} not found.`); } if (document.getElementById(contribId)) { initializeChart(contribId, createContributionChartConfig([], [], [])); } else { console.warn(`Initialization skipped: Canvas ${contribId} not found.`); } });
+
+                    setupNavScrollspy();
+                    setupCheckboxGroup('returnsChart', 'returnsToggleAll', 'returns-line');
+                    setupCheckboxGroup('merChart', 'merToggleAll', 'mer-line');
+                    setupYearEndTabs();
+                    setupYearSelection();
+
+                    updateDashboardForYear(selectedYear);
+                    document.querySelectorAll('.year-end-tabs-group').forEach(group => { group.querySelectorAll('.year-end-tab').forEach(t => { t.classList.toggle('active-tab', parseInt(t.dataset.value) === selectedFyeValue); }); });
+
+                    loadingIndicator.classList.add('hidden'); sections.forEach(sec => sec.classList.remove('hidden'));
+                    console.log("Dashboard Ready.");
+                } catch (error) {
+                    console.error("Error processing data or initializing charts:", error);
+                    loadingIndicator.innerHTML = '<p style="color: red; text-align: center;">Error initializing dashboard. Check console.</p>';
+                }
+            }
+        });
+
+        // --- UI Setup Functions ---
+        function setupNavScrollspy() { const navLinks = document.querySelectorAll('.nav-link-base[href^="#"]'); navLinks.forEach(link => { link.addEventListener('click', (e) => { /* Keep default behavior */ }); }); const scrollContainer = document.querySelector('.scroll-container'); if (!scrollContainer) { console.error("Scroll container not found for scrollspy."); return; } const sectionsToObserve = document.querySelectorAll('.scroll-section'); if (sectionsToObserve.length === 0) { console.warn("No scroll sections found to observe."); return; } let currentSectionId = 'overview'; const observerOptions = { root: scrollContainer, rootMargin: `0px 0px -${window.innerHeight * 0.6}px 0px`, threshold: 0 }; const scrollObserver = new IntersectionObserver((entries) => { let intersectingEntry = entries.find(entry => entry.isIntersecting); if (intersectingEntry) { currentSectionId = intersectingEntry.target.id; } else { if (scrollContainer.scrollTop < window.innerHeight * 0.4) { currentSectionId = 'overview'; } } navLinks.forEach(item => { const isActive = item.getAttribute('href') === `#${currentSectionId}`; item.classList.toggle('nav-active', isActive); }); }, observerOptions); sectionsToObserve.forEach(section => { if (section) { scrollObserver.observe(section); } }); console.log("Scrollspy initialized."); };
+        function setupCheckboxGroup(chartId, toggleAllId, lineClass) { const toggleAllCheckbox = document.getElementById(toggleAllId); const lineToggles = document.querySelectorAll(`.${lineClass}`); const chart = chartInstances[chartId]; if (!chart || !toggleAllCheckbox || lineToggles.length === 0) { console.warn(`Checkbox group setup failed for ${chartId}: Chart or elements not found.`); return; } lineToggles.forEach(input => { input.addEventListener('change', () => { const datasetIndex = chart.data.datasets.findIndex(d => d.label === input.dataset.line); if (datasetIndex !== -1) { chart.setDatasetVisibility(datasetIndex, input.checked); chart.update(); } toggleAllCheckbox.checked = Array.from(lineToggles).every(i => i.checked); }); }); toggleAllCheckbox.addEventListener('change', (e) => { const showAll = e.target.checked; lineToggles.forEach((input) => { input.checked = showAll; const datasetIndex = chart.data.datasets.findIndex(d => d.label === input.dataset.line); if (datasetIndex !== -1) { chart.setDatasetVisibility(datasetIndex, showAll); } }); chart.update(); }); console.log(`Checkbox group initialized for ${chartId}`); };
+        function setupYearEndTabs() { const allTabGroups = document.querySelectorAll('.year-end-tabs-group'); allTabGroups.forEach(group => { group.addEventListener('click', (event) => { const clickedTab = event.target.closest('.year-end-tab'); if (!clickedTab) return; const newFyeValue = parseInt(clickedTab.dataset.value, 10); if (isNaN(newFyeValue) || newFyeValue === selectedFyeValue) { return; } console.log(`Global FYE changed to: ${newFyeValue}`); selectedFyeValue = newFyeValue; allTabGroups.forEach(g => { g.querySelectorAll('.year-end-tab').forEach(t => { t.classList.toggle('active-tab', parseInt(t.dataset.value) === selectedFyeValue); }); }); if (selectedYear !== null) { Object.keys(assetClassMetricMap).forEach(assetClassId => { updateAssetClassSection(assetClassId, selectedFyeValue, selectedYear); }); } else { console.warn("No year selected, cannot update asset class sections for FYE change."); } }); }); console.log("Global Year-end Dec/Mar tab event listeners attached."); };
+        function setupYearSelection() { const yearListContainer = document.getElementById('year-list-container'); yearListContainer.addEventListener('click', (event) => { const target = event.target; if (target.classList.contains('year-item')) { const clickedYear = parseInt(target.dataset.year, 10); if (!isNaN(clickedYear) && clickedYear !== selectedYear) { updateDashboardForYear(clickedYear); } } }); console.log("Right-side year selection listener attached via delegation."); };
+
+    }); // End DOMContentLoaded
+  </script>
+</body>
+</html>
